@@ -1,4 +1,4 @@
-﻿// Helper button
+// Helper button
 const btnInsertionAfter = document.querySelector(".fixed-action-btn.horizontal.click-to-toggle")
 
 const csrfToken = document.querySelector("#review_save_content")?.dataset._token
@@ -274,6 +274,8 @@ btn.addEventListener("click", () => {
 
 
 let responseAPI = ""
+let VATClient = document.querySelectorAll(".collapsible-body")[1].querySelector(".row:nth-child(4) div:nth-child(2)").innerText
+VATClient = VATClient.replace(/^[^0-9]+/, '')
 
 document.querySelector(".supplier-container .search").addEventListener("click", () => {
   document.querySelector(".result-container")?.remove()
@@ -388,14 +390,14 @@ function ResultStructure() {
 
 function formatVATNumber() {
 	let VAT = document.querySelector('[placeholder="N° VAT (Type prefix if not Belgium. Ex: NL)"]').value
-	VAT = (VAT.replaceAll(".", "")).replaceAll(" ", "")
+  VAT = VAT.replace(/\.|\s/g, '')
   document.querySelector('[placeholder="N° VAT (Type prefix if not Belgium. Ex: NL)"]').value = VAT
 	return VAT
 }
 
 
-const dossierId =  window.location.href.split("/")[7]
 const companyNumber = window.location.href.split("/")[5]
+const dossierId =  window.location.href.split("/")[7]
 const avenant = window.location.href.split("/")[9]
 const simulationId = window.location.href.split("/")[11].replace("#!", "")
 
@@ -580,15 +582,32 @@ async function RetrieveDataFromURL(url, classToAdd, searchedString, stored = tru
 }
 
 
+
+
 async function GetPicNumber() {
   const fetchedPageProspect = document.querySelector(".collapsible-header.active .secondary-content a").href
-  await RetrieveDataFromURL(fetchedPageProspect, "pic", `<input disabled="disabled" name="pic_number" type="text" value="`, false)
-
   let prospectNumber = fetchedPageProspect.split("/")
   prospectNumber = prospectNumber[prospectNumber.length - 1]
 
-  const PIC = document.querySelector("[name='pic_number']")?.value
+  await fetchPIC()
   return [PIC, prospectNumber]
+}
+
+async function fetchPIC() {
+  const fetchData = await fetch(`http://twins.belwired.net/dossiers/warranty?vat_number=${VATClient}`)
+  const data = fetchData.json()
+  if (data.data.length === 1) return data.data[0].picnr
+
+  return FindCompany(data.data)
+}
+
+
+function FindCompany(enterprises) {
+  for (const enterprise of enterprises) {
+    if (companyNumber === enterprise.company && dossierId === enterprise.key) {
+      return enterprise.picnr
+    }
+  }
 }
  
 
@@ -598,10 +617,8 @@ async function TransformProspectToClient() {
 
 
   const PICandProspectNumber = await GetPicNumber()
-  let VAT = document.querySelectorAll(".collapsible-body")[1].querySelector(".row:nth-child(4) div:nth-child(2)").innerText
-  VAT = VAT.replace("BE", "")
 
-  const response = await FetchCBE(VAT)
+  const response = await FetchCBE(VATClient)
 
   if (response.errorCode) {
     ChangeButtonMessage(prospectClient, response.message, "red")
@@ -653,7 +670,7 @@ async function TransformProspectToClient() {
   formData.append('city', city)
   formData.append('country_code', 'BE')
   formData.append('country_code_vat', 'BE')
-  formData.append('vat_number', VAT)
+  formData.append('vat_number', VATClient)
   formData.append('unity_enterprise', '')
   formData.append('constitution_date', formattedDate) 
   formData.append('constitution_day', constitutionDay)
@@ -1422,17 +1439,75 @@ if (secondhandAsset.length > 1) {
 secondhandField = secondhandField.value
 
 
-
-const assets = {}
-async function ListOfAssets() {
-  for (let i = 1000; i <= 10000; i+= 1000) {
-    const f = await fetch(`http://twins.belwired.net/investmenttype?grouping_code==${i}`)
-    const data = await f.json()
-
-    data.forEach(item => {
-      assets[(item.description_nl || item.description_fr)] = item.investment_type
-    })
-  }
+const assets = {
+  "Motos - Scooter": "1018",
+  "Voitures de tourisme - Essence": "1020",
+  "Voitures de tourisme - Diesel": "1021",
+  "Voitures de tourisme - Electrique": "1022",
+  "Voitures de tourisme - Hybride": "1023",
+  "Voitures de tourisme - Gaz naturel": "1024",
+  "Vélos": "1025",
+  "Camionettes & Pick-up": "2005",
+  "Bus et Car": "2006",
+  "Camions": "2007",
+  "Montage (Stokota)": "2008",
+  "Remorque": "2026",
+  "Machine agricole": "2030",
+  "hélicoptères": "2042",
+  "Containers (transport)": "2043",
+  "BALAYEUSE et Camion poubelle": "2044",
+  "MOBILHOME": "2045",
+  "CONTAINERS (TRANSPORT)": "3071",
+  "Avions": "2040",
+  "Navires": "2041",
+  "GRUE MOBILE": "3001",
+  "GRUE pour camion": "3002",
+  "EXCAVATRICE A CHENILLE": "3003",
+  "MINI-EXCAVATRICE": "3006",
+  "ELEVATEUR ELECTRIQUE": "3020",
+  "CHARIOT ELEVATEUR": "3021",
+  "ELEVATEUR ou chariot AVEC IMMAT": "3022",
+  "ECHAFAUDAGES": "3030",
+  "GROUPE ELECTROGENE+COMPRESeur": "3040",
+  "batteries": "3050",
+  "cabling": "3051",
+  "CONTAINERS DE BUREAU ou aménagés": "3070",
+  "GRUE FIXE et pont roulant": "3080",
+  "ROULEAU COMPRESSEUR": "3100",
+  "Matériel de nettoyage": "3200",
+  "outillage à main et de jardin": "3300",
+  "AUTRES MAT. DE GENIE CIVIL": "3999",
+  "PRESSe OFFSET": "4001",
+  "MATERIEL PRE-PRESSe et de finition": "4002",
+  "Presse - Rotative": "4004",
+  "Matériel médical et dentaire courant": "5002",
+  "MAT.SPORTIF, de beauté et BANC SOLAIRE": "5004",
+  "AUTRES APP. MEDICAL": "5999",
+  "Boulangerie, boucherie, Cuisine": "6001",
+  "AUTOMATES": "6010",
+  "Matériel Horeca: chaises, tables,...": "6020",
+  "Divertissements": "6030",
+  "Matériel Horeca: chaises, tables,": "6040",
+  "MAT. POUR SALON LAVOIR": "6060",
+  "BALANCE+CAISSE ENREG.": "6080",
+  "EMBALL.-ETIQUETAGE": "7001",
+  "Ligne de production spéciale": "7002",
+  "MACH.TEXTILE": "7004",
+  "USINAGE BOIS+METAL": "7006",
+  "LOGICIEL": "8001",
+  "COPIERS+FAX+IMPRIM.": "8002",
+  "MATERIEL+LOGICIEL": "8003",
+  "SURVEILLANCE&ALARME": "8004",
+  "MAT. DE TELECOM.": "8005",
+  "Audio-video": "8006",
+  "matériel de secours": "8007",
+  "MOBILIER DE BUREAU": "10001",
+  "DECORATION BUREAU": "10002",
+  "INSTRUMENTS DE MUSIQUE": "10003",
+  "oeuvres d'art": "10004",
+  "Matériel public": "10005",
+  "vêtements de travail": "10006",
+  "MATERIEL DIVERS SANS VALEUR": "10998"
 }
 
 
@@ -1440,15 +1515,11 @@ const completeFieldAssetType = document.querySelectorAll(".collapsible-body")[4]
 let currentAsset = (completeFieldAssetType[1] + "-" + completeFieldAssetType[2]).trim()
 currentAsset = currentAsset.replace("-undefined", "")
 
-AutoCompleteAsset()
 
 let invalidAsset = false
-async function AutoCompleteAsset() {
-  await ListOfAssets()
-
+function AutoCompleteAsset() {
   const assetTypeInput = document.querySelector('.asset-list')
   document.querySelector(".investment-container .invalid-active")?.remove()
-
 
   for (let key of Object.keys(assets)) {
     const option = document.createElement("option")
@@ -1466,6 +1537,7 @@ async function AutoCompleteAsset() {
     }
   }
 }
+AutoCompleteAsset()
 
 
 supplierContainer.appendChild(CreateBasicStructureMessage("pMessage-supplier"))
@@ -1489,6 +1561,7 @@ function CreateMessage(message, classMessage, container) {
   const assetTypeMessage = document.querySelector("." + container)
   assetTypeMessage.textContent = message
 
+  assetTypeMessage.offsetHeight
   assetTypeMessage.style.opacity = "1"
   assetTypeMessage.style.height = "auto"
   if (!message.includes("Invalid") && !classMessage.includes("invalid")) {
@@ -1520,7 +1593,6 @@ async function UpdateInvestment() {
     return
   }
 
-  // debugger
   const targetURL = "http://twins.belwired.net/dossiers/investment/update"
   const assetName = LimitFieldLength(document.querySelector("[placeholder='Asset Name']").value)
   const assetCode = assets[assetTypeInput.value]
@@ -1530,9 +1602,7 @@ async function UpdateInvestment() {
   secondhandField = document.querySelector('[placeholder="Date (if secondhand)"]').value
   revolvingDateField = document.querySelector('[placeholder="Date revolving (if Master)"]').value
 
-
   await RetrieveDataFromURL(`http://twins.belwired.net/dossiers/investment/${companyNumber}/${dossierId}/0/0`, "get-investmentId", `<input id="investment_id" name="investment_id" type="hidden" value="`)
-
 
   const today = new Date()
   const completeDate = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear()
@@ -1608,24 +1678,18 @@ function HideMessageSuccess() {
 async function UpdateFinancialData() {
   const targetURL = `http://twins.belwired.net/v2/dossier/financial/${companyNumber}/${dossierId}/${avenant}/${simulationId}/edit`
   
-  const URLwithoutEdit = targetURL.replace("/edit", "")
-  await RetrieveDataFromURL(URLwithoutEdit, "financial-data-1", `<input class="bls_date periodicity_interests" name="date_irs" type="text" value="/
-  <input class="typeahead agent_search" name="commissions[0][code_agent]" type="text" value="/<input class="periodicity_interests" step="0.01" name="margin" type="text" value="/
-  <input readonly class="periodicity_interests" step="0.01" name="interest_rate" type="text" value="`)
-
 
   const duration = document.querySelector("[placeholder='Duration']").value
-  const typeInterestPeriod = "0" + duration / 12
   const IRS = document.querySelector("[placeholder='Interest']").value
-
-  const dateIRS = document.querySelector(".bls_date.periodicity_interests").value
-  const margin = document.querySelector("[name='margin']").value
   const firstRental = document.querySelector("[placeholder='Down Payment']").value
+  
+  const typeInterestPeriod = responseAPIFinancialData.type_interest_period
+  const dateIRS = responseAPIFinancialData.date_irs
+  const margin = responseAPIFinancialData.margin
+  const commissionsCodeAgent = responseAPIFinancialData.commissions[0].code_agent
 
   const purchaseOption = document.querySelector("[placeholder='Purchase Option (% or €)']").value
-  const commissionsCodeAgent = document.querySelector("[name='commissions[0][code_agent]']").value
   const interestRate = document.querySelector("[name='interest_rate']").value
-
   const clientName = document.querySelectorAll(".collapsible-body")[1].querySelector(".row:nth-child(1)").querySelector("div:nth-child(2)").innerText.toLowerCase()
 
   let formData = new FormData()
@@ -1702,36 +1766,32 @@ async function UpdateFinancialData() {
 
 
 CompleteFinancialData()
+let responseAPIFinancialData = ''
+
+async function getFinancialData() {
+  const url = `http://twins.belwired.net:10052/api/bls/dossier/financial/${companyNumber}/${dossierId}/${avenant}}/${simulationId}`
+  const fetchData = await fetch(url, {
+    headers: { 'power-user': 'nabila' }
+  })
+  const response = await fetchData.json()
+  responseAPIFinancialData = response.financial
+  return responseAPIFinancialData
+}
+
 
 async function CompleteFinancialData() {
-  const duration = document.querySelectorAll(".collapsible-body")[5].querySelector(".row:nth-child(1)").querySelector("div:nth-child(2)").innerText.split(" ")[0]
-  let purchaseOption = document.querySelectorAll(".collapsible-body")[5].querySelector(".row:nth-child(3)").querySelector("div:nth-child(2)").innerText
-  purchaseOption = purchaseOption.split("(")[1].split("%")[0].replace(",", ".")
-  let interest = document.querySelectorAll(".collapsible-body")[7].querySelector(".row:nth-child(1)").querySelector("div:nth-child(2)")?.innerText
-  let firstRental = document.querySelectorAll(".collapsible-body")[5].querySelector(".row:nth-child(2)").querySelector("div:nth-child(2)").innerText
+  const financialData = await getFinancialData()
+  let { duration, residual_value_percentage: purchaseOption, irs: interest, first_rentals: firstRental } = financialData
 
-  if (!interest) {
-    const targetURL = `http://twins.belwired.net/v2/dossier/financial/${companyNumber}/${dossierId}/${avenant}/${simulationId}`
-    await RetrieveDataFromURL(targetURL, "financial-data-2", `<input class="periodicity_interests" step="0.01" name="irs" type="text" value="`)
-  }
-
-
-  if(firstRental.includes("%")) {
-    firstRental = firstRental.split("(")[1].split("%")[0]
+  if(firstRental.length) {
+    firstRental = firstRental[0].percentage
   } else {
     firstRental = ""
   }
 
-
-  if ((firstRental + 0) === 0) {
-    // take the amount, incorrect display
-    firstRental = document.querySelectorAll(".collapsible-body")[5].querySelector(".row:nth-child(2)").querySelector("div:nth-child(2)").innerText
-    firstRental = firstRental.split("EUR")[0].split("X")[1].replaceAll(" ", "").replace(",", ".")
-  }
-
   document.querySelector("[placeholder='Duration']").value = duration
   document.querySelector("[placeholder='Purchase Option (% or €)']").value = purchaseOption
-  document.querySelector("[placeholder='Interest']").value = interest || document.querySelector(".periodicity_interests").value
+  document.querySelector("[placeholder='Interest']").value = interest 
   document.querySelector("[placeholder='Down Payment']").value = firstRental
 }
 
@@ -1958,3 +2018,5 @@ function addMessage(message, text) {
   message.innerHTML = `${text}&nbsp;&nbsp;&nbsp;`
   message.appendChild(AddIconToMessage())
 }
+
+
