@@ -1,4 +1,4 @@
-﻿// Helper button
+// Helper button
 const btnInsertionAfter = document.querySelector(".fixed-action-btn.horizontal.click-to-toggle")
 
 const csrfToken = document.querySelector("#review_save_content")?.dataset._token
@@ -1689,7 +1689,7 @@ async function UpdateFinancialData() {
   const commissionsCodeAgent = responseAPIFinancialData.commissions[0].code_agent
 
   const purchaseOption = document.querySelector("[placeholder='Purchase Option (% or €)']").value
-  const interestRate = document.querySelector("[name='interest_rate']").value
+  const interestRate = responseAPIFinancialData.interest_rate
   const clientName = document.querySelectorAll(".collapsible-body")[1].querySelector(".row:nth-child(1)").querySelector("div:nth-child(2)").innerText.toLowerCase()
 
   let formData = new FormData()
