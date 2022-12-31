@@ -529,6 +529,8 @@ async function PostDataRegeneration() {
     formData.append('cmbfmt' + chkdoc, "pdf")
   })
 
+  FakeIt(regenPage)
+
 	fetch(targetURL,
 	{
 		body: formData,
@@ -549,7 +551,6 @@ function GetDateGenerationContract() {
 }
 
 async function RetrieveDataFromURL(url, classToAdd, searchedString, stored = true) {
-  // debugger
   if (document.querySelector("." + classToAdd) && stored) return
 
   FakeIt(url)
@@ -615,9 +616,7 @@ async function TransformProspectToClient() {
   const prospectClient = document.querySelector(".prospect-client")
   prospectClient.textContent = "Step 0/2"
 
-
-  const PICandProspectNumber = await GetPicNumber()
-
+  const [PIC, ProspectNumber] = await GetPicNumber()
   const response = await FetchCBE(VATClient)
 
   if (response.errorCode) {
@@ -651,18 +650,17 @@ async function TransformProspectToClient() {
   const formattedDate = constitutionDate.reverse().join("/")
   const naceCodesArray = response.activities
 
-  // debugger
   const targetURL = "http://twins.belwired.net/prospects"
 
   let formData = new FormData()
   formData.append('_token', csrfToken)
-  formData.append('prospect_number', PICandProspectNumber[1])
+  formData.append('prospect_number', ProspectNumber)
   formData.append('name', name)
   formData.append('name_continued', "")
   formData.append('company_form', juridicForm)
   formData.append('client_type', "02")
   formData.append('code_immo', "M") 
-  formData.append('pic_number', PICandProspectNumber[0]) 
+  formData.append('pic_number', PIC) 
   formData.append('language', language) 
   formData.append('judicial_capacity', "100") 
   formData.append('address', completeAdress) 
@@ -684,6 +682,8 @@ async function TransformProspectToClient() {
   formData.append('know_your_customer', '0')
   formData.append('final_benificiary', '0')
 
+  FakeIt(`prospects/${ProspectNumber}/edit`)
+
   fetch(targetURL,
   {
     body: formData,
@@ -691,7 +691,7 @@ async function TransformProspectToClient() {
   })
   .then(async () => {
     prospectClient.textContent = "Step 1/2"
-    await FinalStepClient(PICandProspectNumber, naceCodesArray)
+    await FinalStepClient(PIC, ProspectNumber, naceCodesArray)
   })
   .then(async () => {
     if (!naceCodesArray.length) return
@@ -705,7 +705,7 @@ function ChangeButtonMessage(element, message, color) {
   element.style.borderColor = color
 }
 
-async function FinalStepClient(prospectNumber, naceCodesArray) {
+async function FinalStepClient(PIC, ProspectNumber, naceCodesArray) {
   const naceCode = FindFirstNC(naceCodesArray)
 
 
@@ -719,12 +719,14 @@ async function FinalStepClient(prospectNumber, naceCodesArray) {
   let formData = new FormData()
   formData.append('_token', csrfToken)
   formData.append('d02ste', companyNumber)
-  formData.append('prospect_number', prospectNumber[1])
+  formData.append('prospect_number', ProspectNumber)
   formData.append('d02cimmo', 'M')
-  formData.append('pic_number', prospectNumber[0])
+  formData.append('pic_number', PIC)
   formData.append('d02cact', naceCode)
   formData.append('d02appo', "02")
   formData.append('unity_enterprise', '')
+
+  FakeIt(`prospecttocustomer/${ProspectNumber}?d02ste=`)
 
   fetch(targetURL,
   {
@@ -800,7 +802,7 @@ async function CompleteSupplier(display = true) {
   }
 
 
-  const refererURL = `suppliers/${companyNumber}/${dossierId}/${avenant}/${simulationId}/edit`
+  const refererURL = `dossiers/suppliers/${companyNumber}/${dossierId}/${avenant}/${simulationId}/edit`
   FakeIt(refererURL)
 
   
@@ -1249,6 +1251,8 @@ async function ProcedureUpdateSeveralU(estUnit) {
   const supplierName = document.querySelector('[placeholder="Name"]').value
   const ChassisNumber = document.querySelector('[placeholder="N° Chassis"]').value
   
+  const refererURL = `dossiers/suppliers/${companyNumber}/${dossierId}/${avenant}/${simulationId}/edit`
+  FakeIt(refererURL)
   
   // Non-ordered suppliers, loop is needed
   await fetch(`http://twins.belwired.net/suppliers/search?modal_d03ntva=${VATnumber}&modal_d03nom=${supplierName}&modal_d03frs=${supplierNumber}&modal_address=${address}`)
@@ -1394,6 +1398,9 @@ async function UpdateSupplier() {
 	formData.append('d03vil', selectedSupplier.querySelector("input[name='vil']").value)
 	formData.append('d03pay', selectedSupplier.querySelector("input[name='pay']").value)
 	formData.append('chassis_number', document.querySelector('[placeholder="N° Chassis"]').value)
+
+  const refererURL = `dossiers/suppliers/${companyNumber}/${dossierId}/${avenant}/${simulationId}/edit`
+  FakeIt(refererURL)
 
 	fetch(targetURL,
 	{
@@ -1649,6 +1656,9 @@ async function UpdateInvestment() {
     formData.append('date_incirculation_year', today.getFullYear())
   }
 
+  const refererURL = `dossiers/investment/${companyNumber}/${dossierId}/${avenant}/${simulationId}/edit`
+  FakeIt(refererURL)
+
 	fetch(targetURL,
 	{
 		body: formData,
@@ -1751,6 +1761,9 @@ async function UpdateFinancialData() {
     formData.append('first_rentals[0][amount]', firstRental)
   }
 	formData.append('action', 'calculate')
+
+  const refererURL = `v2/dossier/financial/${companyNumber}/${dossierId}/${avenant}/${simulationId}/edit`
+  FakeIt(refererURL)
 
 	fetch(targetURL,
 	{
@@ -1857,7 +1870,7 @@ async function SearchClient(code) {
 
   let targetURL
   if (isNaN(warranty) && warranty || warranty.includes("BE")) {
-    warranty = warranty.replace("BE", "")
+    warranty = warranty.replace(/^[^0-9]+/, '')
     targetURL = `http://twins.belwired.net/dossiers/warranty?name=${warranty}&vat_number=${warranty}&${companyNumber === "5" ? "soc5" : "soc2"}=${warranty}&operator=or&page=1`
   } else if (warranty) {
     targetURL = `http://twins.belwired.net/dossiers/warranty?key=${warranty}&operator=or&page=1`
@@ -1868,7 +1881,6 @@ async function SearchClient(code) {
 
 
 async function UpdateWarranty(code) {
-
   let clientData = await SearchClient(code)
 
   if (clientData === null) {
@@ -1885,8 +1897,8 @@ async function UpdateWarranty(code) {
     purchaseOption = Math.ceil(purchaseOption) / 100
   }
 
-  // stopped here
   targetURL = "http://twins.belwired.net/dossiers/warranty"
+
   let formData = new FormData()
 	formData.append('_token', csrfToken)
 	formData.append('b408tid', "BFL400")
@@ -1909,17 +1921,19 @@ async function UpdateWarranty(code) {
 	formData.append('city', clientData.village)
 	formData.append('country_vatnumber', clientData.country_vat)
 
-if (code === "1") {
-  	formData.append('birthday_daybirthday_monthbirthday_year', completeDateBirthday)
-  	formData.append('birthday_day', clientData.birthday_day)
-  	formData.append('birthday_month', clientData.birthday_month)
-  	formData.append('birthday_year', clientData.birthday_year)
-  	formData.append('b408_mtc', purchaseOption)   // montant OA
-  	formData.append('currency', "EU")
-  	formData.append('duration', document.querySelector("[placeholder='Duration']").value)
-  	formData.append('clausule_lesser_val', "1")
-}
+  if (code === "1") {
+      formData.append('birthday_daybirthday_monthbirthday_year', completeDateBirthday)
+      formData.append('birthday_day', clientData.birthday_day)
+      formData.append('birthday_month', clientData.birthday_month)
+      formData.append('birthday_year', clientData.birthday_year)
+      formData.append('b408_mtc', purchaseOption)   // montant OA
+      formData.append('currency', "EU")
+      formData.append('duration', document.querySelector("[placeholder='Duration']").value)
+      formData.append('clausule_lesser_val', "1")
+  }
 
+  const refererURL = `dossiers/warranty/${companyNumber}/${dossierId}/${avenant}/${simulationId}/edit`
+  FakeIt(refererURL)
 
   fetch(targetURL,
 	{
