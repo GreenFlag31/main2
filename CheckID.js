@@ -1,7 +1,6 @@
 const IDGeneralContainer = document.querySelectorAll('.card')[1]
 
 async function CheckForPossibleID() {
-
   let companyName = document.querySelectorAll(".collapsible-body")[1].querySelector(".row div:nth-child(2)").innerText.split(" ")
   let folderID = ""
 
@@ -44,6 +43,7 @@ async function CheckForPossibleID() {
   CheckOnPage(folderID, message)
 }
 
+
 async function CheckOnPage(folderID, message) {
   const IDField = '<input checked="checked" name="ib_flow" type="checkbox" value="1">'
   
@@ -61,6 +61,7 @@ async function CheckOnPage(folderID, message) {
 
   HideLoader("ID-container")
 }
+
 
 function HideLoader(target) {
   document.querySelector(`.${target} .loader-container`).style.display = "none"
@@ -81,23 +82,26 @@ function CreateLoader(target, IDContainer) {
 }
   
 
-
 function CreateDivWithClass(className) {
   const div = document.createElement("div")
   div.classList.add(className)
   return div
 }
 
+
 const keyframes = [
   { transform: 'rotate(0)' },
   { transform: 'rotate(360deg)' }
 ]
+
 
 const options = {
   duration: 1000,
   easing: "linear",
   iterations: Infinity
 }
+
+
 
 function StyleLoaderContainer(loaderContainer) {
   loaderContainer.style.position = "relative"
@@ -108,6 +112,7 @@ function StyleLoaderContainer(loaderContainer) {
 
   loaderContainer.animate(keyframes, options)
 }
+
 
 function StyleLoader(loader) {
   loader.style.position = "absolute"
@@ -120,7 +125,10 @@ function StyleLoader(loader) {
   loader.style.borderRadius = "50%"
   loader.style.borderColor = "#c30045 transparent"
 }
+
+
 const abbreviationJF = ["BV", "SRL", "NV", "SPRL", "SA", "M.", "DHR", "SCOMM", "COMMV", "SNC", "VOF", "MME", "MEVR", "ASBL", "VZW", "SAS", "SARL", "NVBA", "AF", "FV", "AISBL", "IVZW", "UP", "SE", "EV"]
+
 
 async function RetrieveDataFromURL(url, classToAdd, searchedString, stored = true) {
   if (document.querySelector("." + classToAdd) && stored) return
@@ -154,6 +162,7 @@ async function RetrieveDataFromURL(url, classToAdd, searchedString, stored = tru
   document.body.appendChild(spanProspect)
 }
 
+
 const actualLocation = window.location.href
 function FakeIt(refererURL) {
   window.history.replaceState(null, '', `/${refererURL}`)
@@ -162,10 +171,12 @@ function FakeIt(refererURL) {
   }, 1000);
 }
 
+
 function addMessage(message, text) {
   message.innerHTML = `${text}&nbsp;&nbsp;&nbsp;`
   message.appendChild(AddIconToMessage())
 }
+
 function AddIconToMessage() {
   const spanMessage = document.createElement("span")
   spanMessage.textContent = "✔"
@@ -174,5 +185,6 @@ function AddIconToMessage() {
 
   return spanMessage
 }
+
 
 CheckForPossibleID()
