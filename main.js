@@ -746,7 +746,9 @@ function FindFirstNC(naceCodesArray) {
 
 function FakeIt(refererURL) {
   window.history.replaceState(null, '', `/${refererURL}`)
-  window.history.replaceState(null, '', actualLocation)
+  setTimeout(() => {
+    window.history.replaceState(null, '', actualLocation)
+  }, 1000);
 }
 
 
