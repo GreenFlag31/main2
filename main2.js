@@ -311,18 +311,18 @@ function CreateDivWithClass(className) {
   return div
 }
 
-const keyframes = [
-  { transform: 'rotate(0)' },
-  { transform: 'rotate(360deg)' }
-]
-
-const options = {
-  duration: 1000,
-  easing: "linear",
-  iterations: Infinity
-}
 
 function StyleLoaderContainer(loaderContainer) {
+  const keyframes = [
+    { transform: 'rotate(0)' },
+    { transform: 'rotate(360deg)' }
+  ]
+  
+  const options = {
+    duration: 1000,
+    easing: "linear",
+    iterations: Infinity
+  }
   loaderContainer.style.position = "relative"
   loaderContainer.style.display = "inline-block"
   loaderContainer.style.transform = "translateY(10px)"
