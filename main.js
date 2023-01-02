@@ -791,7 +791,7 @@ async function CompleteSupplier(display = true) {
   }
 
 
-  const refererURL = `dossiers/suppliers/${companyNumber}/${dossierId}/${avenant}/${simulationId}/edit`
+  const refererURL = `dossiers/supplier/${companyNumber}/${dossierId}/${avenant}/${simulationId}/edit`
   FakeIt(refererURL)
 
   
@@ -1240,7 +1240,7 @@ async function ProcedureUpdateSeveralU(estUnit) {
   const supplierName = document.querySelector('[placeholder="Name"]').value
   const ChassisNumber = document.querySelector('[placeholder="N° Chassis"]').value
   
-  const refererURL = `dossiers/suppliers/${companyNumber}/${dossierId}/${avenant}/${simulationId}/edit`
+  const refererURL = `dossiers/supplier/${companyNumber}/${dossierId}/${avenant}/${simulationId}/edit`
   FakeIt(refererURL)
   
   // Non-ordered suppliers, loop is needed
@@ -1388,7 +1388,7 @@ async function UpdateSupplier() {
 	formData.append('d03pay', selectedSupplier.querySelector("input[name='pay']").value)
 	formData.append('chassis_number', document.querySelector('[placeholder="N° Chassis"]').value)
 
-  const refererURL = `dossiers/suppliers/${companyNumber}/${dossierId}/${avenant}/${simulationId}/edit`
+  const refererURL = `dossiers/supplier/${companyNumber}/${dossierId}/${avenant}/${simulationId}/edit`
   FakeIt(refererURL)
 
 	fetch(targetURL,
@@ -1785,7 +1785,7 @@ async function CompleteFinancialData() {
   const financialData = await getFinancialData()
   let { duration, residual_value_percentage: purchaseOption, irs: interest, first_rentals: firstRental } = financialData
 
-  if(firstRental.length) {
+  if(firstRental) {
     firstRental = firstRental[0].percentage
   } else {
     firstRental = ""
