@@ -585,38 +585,25 @@ async function RetrieveDataFromURL(url, classToAdd, searchedString, stored = tru
 
 
 
-async function GetPicNumber() {
+async function GetPicandProspectNumber() {
   const fetchedPageProspect = document.querySelector(".collapsible-header.active .secondary-content a").href
   let prospectNumber = fetchedPageProspect.split("/")
   prospectNumber = prospectNumber[prospectNumber.length - 1]
+  const url = fetchedPageProspect + '/edit'
 
-  await fetchPIC()
+  await RetrieveDataFromURL(url, "get-PIC-Prospect-number", `<input id="pic_number" name="pic_number" type="text" value="`)
+  const PIC = document.querySelector('#pic_number').value
+
   return [PIC, prospectNumber]
 }
 
-async function fetchPIC() {
-  const fetchData = await fetch(`http://twins.belwired.net/dossiers/warranty?vat_number=${VATClient}`)
-  const data = fetchData.json()
-  if (data.data.length === 1) return data.data[0].picnr
-
-  return FindCompany(data.data)
-}
-
-
-function FindCompany(enterprises) {
-  for (const enterprise of enterprises) {
-    if (companyNumber === enterprise.company && dossierId === enterprise.key) {
-      return enterprise.picnr
-    }
-  }
-}
  
 
 async function TransformProspectToClient() {
   const prospectClient = document.querySelector(".prospect-client")
   prospectClient.textContent = "Step 0/2"
 
-  const [PIC, ProspectNumber] = await GetPicNumber()
+  const [PIC, ProspectNumber] = await GetPicandProspectNumber()
   const response = await FetchCBE(VATClient)
 
   if (response.errorCode) {
@@ -628,7 +615,7 @@ async function TransformProspectToClient() {
     ChangeButtonMessage(prospectClient, "Failed : Natural Person", "red")
     return
   }
-  if (!PICandProspectNumber[0]) {
+  if (!PIC) {
     ChangeButtonMessage(prospectClient, "Failed : PIC unavailable. Fill PIC & restart", "red")
     setTimeout(() => {
       ChangeButtonMessage(prospectClient, "Transform prospect to client", "orange")
