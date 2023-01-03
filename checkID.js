@@ -163,11 +163,11 @@ async function RetrieveDataFromURL(url, classToAdd, searchedString, stored = tru
 }
 
 
-const actualLocation = window.location.href
+const actualURL = window.location.href
 function FakeIt(refererURL) {
   window.history.replaceState(null, '', `/${refererURL}`)
   setTimeout(() => {
-    window.history.replaceState(null, '', actualLocation)
+    window.history.replaceState(null, '', actualURL)
   }, 1000);
 }
 
