@@ -101,7 +101,6 @@ async function SendMail(contractNumber) {
       window.history.replaceState(null, '', actualLocation)
       if (response.ok) {
         localStorage.removeItem('contracts')
-        console.log('message envoyé')
       }
     })
 }
