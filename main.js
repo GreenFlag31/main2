@@ -591,12 +591,13 @@ async function GetPicandProspectNumber() {
   prospectNumber = prospectNumber[prospectNumber.length - 1]
   const url = fetchedPageProspect + '/edit'
 
+
   await RetrieveDataFromURL(url, "get-PIC-Prospect-number", `<input id="pic_number" name="pic_number" type="text" value="`)
   const PIC = document.querySelector('#pic_number').value
 
   return [PIC, prospectNumber]
 }
-
+// <input id="pic_number" name="pic_number" type="text" value="
  
 
 async function TransformProspectToClient() {
@@ -1363,7 +1364,9 @@ async function UpdateSupplier() {
   const investment = document.querySelector("[placeholder='Asset Name']").value
   const selectedSupplier = document.querySelector(".result-container .selected-supplier .collection-item") || document.querySelector(".result-container .collection-item")
 
-  const url = `http://twins.belwired.net/dossiers/investment/${companyNumber}/${dossierId}/0/0`
+  const updatedSimulationId = window.location.href.split("/")[11].replace("#!", "")
+
+  const url = `http://twins.belwired.net/dossiers/investment/${companyNumber}/${dossierId}/0/${updatedSimulationId}`
   await RetrieveDataFromURL(url, "get-investmentId", `<input id="investment_id" name="investment_id" type="hidden" value="`)
   
   
