@@ -75,13 +75,13 @@ async function SendMail(contractNumber) {
 
   const recipientEmail = localStorage.getItem('addr')
   const clientName = document.querySelectorAll(".collapsible-body")[1].querySelector(".row:nth-child(1)").querySelector("div:nth-child(2)").innerText
-  const titleEmail = `${clientName} - ${contractNumber}`
+  const titleEmail = `${clientName}  -  ${contractNumber}`
 
   let emailAgent = FindLanguageAgent(fetchedData)
   if (!emailAgent) {
     emailAgent = await addManuallyAdressMail()
   }
-  const emailBodyFR = `Agent : ${emailAgent}<br><br>Bonne journée,`
+  const emailBodyFR = `<br>Agent : ${emailAgent}<br><br><br><br>Bonne journée,`
 
 
   let formData = new FormData()
