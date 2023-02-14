@@ -98,9 +98,12 @@ async function SendMail(contractNumber) {
       method: "POST"
     })
     .then((response) => {
-      window.history.replaceState(null, '', actualLocation)
       if (response.ok) {
-        localStorage.removeItem('contracts')
+        window.history.replaceState(null, '', actualLocation)
+        if (response.ok) {
+          localStorage.removeItem('contracts')
+        }
+        window.location.href = 'http://twins.belwired.net/'
       }
     })
 }
